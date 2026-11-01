@@ -1,0 +1,62 @@
+name: Release
+
+# 推一个 v* 的 tag 就会在这里构建并发布。
+# 为什么放在 CI：本机是 Intel + 只有 Command Line Tools，Swift 标准库只有 x86_64，
+# 出不了 arm64。GitHub 的 macos-14 runner 是 Apple Silicon 且带完整 Xcode，
+# 一次编译两种架构再 lipo 合并，才能给用户一个通用包。
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # build.sh 用 git rev-list --count 当 CFBundleVersion，浅克隆会算错
+          fetch-depth: 0
+
+      - name: 解析版本
+        id: ver
+        run: |
+          echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+          echo "tag=${GITHUB_REF_NAME}" >> "$GITHUB_OUTPUT"
+
+      - name: 构建通用包
+        env:
+          POINTTELL_VERSION: ${{ steps.ver.outputs.version }}
+          POINTTELL_ARCHS: "arm64 x86_64"
+        run: ./build.sh
+
+      - name: 校验架构
+        run: |
+          lipo -info build/PointTell.app/Contents/MacOS/PointTell
+          /usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" \
+            build/PointTell.app/Contents/Info.plist
+
+      - name: 打包 dmg / zip
+        run: ./scripts/package.sh universal
+
+      - name: 发布 Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.ver.outputs.tag }}
+          name: PointTell ${{ steps.ver.outputs.version }}
+          files: dist/*
+          generate_release_notes: true
+          body: |
+            ## 安装
+
+            1. 下载 `PointTell-${{ steps.ver.outputs.version }}-universal-macOS.dmg`
+            2. 打开 dmg，把 PointTell 拖进「应用程序」
+            3. 首次启动请**右键 → 打开**（或执行 `xattr -dr com.apple.quarantine /Applications/PointTell.app`）
+            4. 按提示授予「辅助功能」权限；要配色自适应再给「屏幕录制」
+
+            > 这个包是 ad-hoc 签名，没有经过 Apple 公证，所以 Gatekeeper 会拦一次。
+            > 校验文件完整性请看 `SHA256SUMS.txt`。

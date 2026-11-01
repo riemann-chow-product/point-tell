@@ -1,0 +1,11 @@
+# 构建产物
+build/
+dist/
+*.dmg
+*.xcarchive
+
+# macOS
+.DS_Store
+
+# 本地日志 / 临时文件
+*.log

@@ -206,6 +206,15 @@ Sources/
 └── Support.swift           日志/角色名/快捷键显示等小工具
 ```
 
+```
+scripts/
+├── package.sh              打包 dmg + zip + SHA256SUMS
+├── release.sh              一条命令发版（版本号 → 构建 → tag → push）
+├── render-preview.sh       把面板渲染成 demo/preview-*.png
+├── fix-accessibility.sh    修辅助功能授权（清旧记录 + 打开面板）
+└── fix-api-key.sh          从钥匙串抢救旧 API Key
+```
+
 一次调用的数据流：
 
 ```
@@ -217,6 +226,90 @@ Sources/
          └→ LLMClient.start()            流式输出
              └→ Paster.insert()          剪贴板 + ⌘V 写回
 ```
+
+## 打包与发版
+
+### 为什么 arm64 只能交给 CI
+
+本机是 **Intel（x86_64）**，且只装了 Command Line Tools —— 它自带的 Swift 标准库只有 x86_64 一份：
+
+```
+$ swiftc -target arm64-apple-macosx10.15 ...
+error: unable to load standard library for target 'arm64-apple-macosx10.15'
+```
+
+所以本地构建只能产出 x86_64 的包（Apple Silicon 上靠 Rosetta 2 跑）。要出 **arm64 / 通用包**，只能在带完整 Xcode 的机器或 GitHub Actions 上构建 —— `.github/workflows/release.yml` 就是干这个的。
+
+### 三个命令
+
+```bash
+./build.sh                       # 只编译：build/PointTell.app
+./scripts/package.sh x86_64      # 只打包：dist/*.dmg / *.zip / SHA256SUMS.txt
+./scripts/release.sh 0.2.0       # 发版：改版本号 → 构建 → 打包 → commit → tag → push
+```
+
+`make` 里有对应简写：`make app` / `make dist` / `make release VERSION=0.2.0`。
+
+`release.sh` 的参数：
+
+| 参数 | 作用 |
+| --- | --- |
+| `--no-push` | 只在本地产出并打 tag，不动远端（演练用） |
+| `--publish` | 本地包用 `gh release create` 直接发（没装 gh 会给出安装提示） |
+| `--archs "arm64 x86_64"` | 出通用包（需要完整 Xcode，本机不行） |
+
+### 产物长什么样
+
+```
+dist/
+├── PointTell-0.2.0-universal-macOS.dmg   # 拖拽安装，内含 /Applications 快捷方式
+├── PointTell-0.2.0-universal-macOS.zip   # 解压即用，保留可执行位与签名
+└── SHA256SUMS.txt
+```
+
+架构后缀是 `universal` / `arm64` / `x86_64`。`dist/` 每次打包都会清空，不会把旧版本的包混进 Release。
+
+### 版本号只有一个来源
+
+`Sources/AppInfo.swift` 里的 `static let version`。`build.sh` 用它注入 `Info.plist` 的 `CFBundleShortVersionString`，`CFBundleVersion` 用 `git rev-list --count HEAD` 自动生成。`release.sh` 只改这一个地方，不会再出现「关于窗口 0.1.4、dmg 名字 0.1.3」。
+
+### 走 tag 触发 CI 发布
+
+```bash
+./scripts/release.sh 0.2.0     # 自动 commit + tag v0.2.0 + push
+```
+
+推上去之后 GitHub Actions（`macos-14`，Apple Silicon）会：
+
+1. `POINTTELL_ARCHS="arm64 x86_64"` 编译两份，`lipo` 合并成通用二进制
+2. `scripts/package.sh universal` 出 dmg + zip + 校验和
+3. `softprops/action-gh-release` 建 Release 并上传 `dist/*`，自动生成变更说明
+
+进度看 `https://github.com/riemann-chow-product/point-tell/actions`。
+
+> 如果 `git push` 报 `Empty reply from server`，是代理没走对：
+> `POINTTELL_GIT_PROXY=http://127.0.0.1:9090 ./scripts/release.sh 0.2.0`
+
+### 签名与 Gatekeeper
+
+| 场景 | 签名 | 用户装的时候 |
+| --- | --- | --- |
+| 本地 / CI 默认 | ad-hoc 或自签名证书 | 会被拦一次：右键 → 打开，或 `xattr -dr com.apple.quarantine /Applications/PointTell.app` |
+| 有 Apple Developer 账号 | Developer ID + 公证 | 双击直接开 |
+
+要接公证（$99/年 账号），在仓库 Secrets 里放证书和账号信息，然后：
+
+```bash
+POINTTELL_SIGN_ID="Developer ID Application: Your Name (TEAMID)" \
+POINTTELL_KEYCHAIN=/path/to/temp.keychain \
+POINTTELL_HARDENED=1 \
+./build.sh
+xcrun notarytool submit dist/PointTell-x.y.z-universal-macOS.zip \
+  --apple-id "$APPLE_ID" --team-id "$TEAM_ID" --password "$APP_SPECIFIC_PASSWORD" --wait
+xcrun stapler staple build/PointTell.app
+```
+
+没做公证之前，Release 页面的安装说明里要写清楚「右键打开」，否则用户会以为应用坏了。
 
 ## 辅助功能授权为什么勾了不生效
 
