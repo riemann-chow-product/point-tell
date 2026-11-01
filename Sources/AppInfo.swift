@@ -3,7 +3,7 @@ import Foundation
 enum AppInfo {
     static let name = "PointTell"
     static let tagline = "指哪改哪 · 光标 AI 副驾"
-    static let version = "0.1.3"
+    static let version = "0.1.0"
     static let bundleID = "com.pointtell.app"
     static let keychainService = "com.pointtell.apikey"
 }
