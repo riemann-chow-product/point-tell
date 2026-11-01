@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>PointTell 测试表格</title>
+<style>
+  body { font-family: -apple-system, "PingFang SC", sans-serif; margin: 40px; color: #222; }
+  h1 { font-size: 18px; font-weight: 600; }
+  p.hint { color: #666; font-size: 13px; }
+  table { border-collapse: collapse; margin-top: 16px; font-size: 14px; }
+  th, td { border: 1px solid #ddd; padding: 8px 16px; text-align: right; }
+  th { background: #f5f5f5; font-weight: 600; text-align: center; }
+  td:first-child, th:first-child { text-align: left; }
+  tr:hover td { background: #fffbe6; }
+</style>
+</head>
+<body>
+  <h1>2026 区域销售（万元）</h1>
+  <p class="hint">把光标悬停在任意单元格上，按 ⌃⌥P，问「这块的环比趋势怎么样」。</p>
+
+  <table>
+    <thead>
+      <tr><th>区域</th><th>Q1</th><th>Q2</th><th>Q3</th><th>Q4</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>华东</td><td>1,280</td><td>1,450</td><td>1,390</td><td>1,610</td></tr>
+      <tr><td>华南</td><td>980</td><td>1,120</td><td>1,260</td><td>1,300</td></tr>
+      <tr><td>华北</td><td>1,540</td><td>1,410</td><td>1,220</td><td>1,050</td></tr>
+      <tr><td>西南</td><td>620</td><td>660</td><td>690</td><td>910</td></tr>
+      <tr><td>东北</td><td>410</td><td>390</td><td>360</td><td>320</td></tr>
+    </tbody>
+  </table>
+
+  <p class="hint" style="margin-top:24px">也可以指着下面这句话，按 ⌘1 切到「改写」，说「改成正式语气」：</p>
+  <p id="para">这次促销效果挺好的，就是物流有点拉胯，下次得早点准备。</p>
+</body>
+</html>

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>zh_CN</string>
+	<key>CFBundleDisplayName</key>
+	<string>PointTell</string>
+	<key>CFBundleExecutable</key>
+	<string>PointTell</string>
+	<key>CFBundleIdentifier</key>
+	<string>com.pointtell.app</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundleName</key>
+	<string>PointTell</string>
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
+	<key>CFBundleShortVersionString</key>
+	<string>0.1.3</string>
+	<key>CFBundleVersion</key>
+	<string>1</string>
+	<key>LSMinimumSystemVersion</key>
+	<string>10.15</string>
+	<key>LSUIElement</key>
+	<true/>
+	<key>NSAppleEventsUsageDescription</key>
+	<string>PointTell 需要把生成结果写回你正在使用的应用。</string>
+	<key>NSHighResolutionCapable</key>
+	<true/>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>PointTell 使用麦克风把你的语音指令转成文字。</string>
+	<key>NSPrincipalClass</key>
+	<string>NSApplication</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>PointTell 使用语音识别把口述指令转成文字。</string>
+</dict>
+</plist>
