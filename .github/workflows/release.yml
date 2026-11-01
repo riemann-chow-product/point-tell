@@ -51,12 +51,14 @@ jobs:
           files: dist/*
           generate_release_notes: true
           body: |
-            ## 安装
+            ## Install
 
-            1. 下载 `PointTell-${{ steps.ver.outputs.version }}-universal-macOS.dmg`
-            2. 打开 dmg，把 PointTell 拖进「应用程序」
-            3. 首次启动请**右键 → 打开**（或执行 `xattr -dr com.apple.quarantine /Applications/PointTell.app`）
-            4. 按提示授予「辅助功能」权限；要配色自适应再给「屏幕录制」
+            1. Download `PointTell-${{ steps.ver.outputs.version }}-universal-macOS.dmg`
+            2. Open the dmg and drag **PointTell** into **Applications**
+            3. On first launch, **right-click → Open** (or run `xattr -dr com.apple.quarantine /Applications/PointTell.app`)
+            4. Grant **Accessibility** when prompted. Grant **Screen Recording** only if you want the panel to adapt its colors to the app behind it
 
-            > 这个包是 ad-hoc 签名，没有经过 Apple 公证，所以 Gatekeeper 会拦一次。
-            > 校验文件完整性请看 `SHA256SUMS.txt`。
+            > This build is ad-hoc signed and not notarized by Apple, so Gatekeeper blocks it once.
+            > Verify your download against `SHA256SUMS.txt`.
+
+            **Requirements:** macOS 10.15 or later · Universal binary (Apple Silicon + Intel)
